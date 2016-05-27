@@ -15,8 +15,8 @@ import (
 type SimpleChaincode struct {
 }
 
-var itemIndexStr = "itemindex"
-var openTradesStr = "opentrades"
+var itemIndexStr = "_itemindex"
+var openTradesStr = "_opentrades"
 
 type Item struct{
 	Name string `json:"name"`
@@ -209,27 +209,27 @@ func (t *SimpleChaincode) init_marble(stub *shim.ChaincodeStub, args []string) (
 
 	name := strings.ToLower(args[0])
 	id := args[1]
-	user := strings.ToLower(args[2])
+	owner := strings.ToLower(args[2])
 
-	str := `{"name": "` + args[0] + `", "color": "` + color + `", "size": ` + strconv.Itoa(size) + `, "user": "` + user + `"}`
-	err = stub.PutState(args[0], []byte(str))								//store marble with id as key
+	str := `{"name": "` + name + `, "id": "` + id + `, "owner": "` + owner + `"}`
+	err = stub.PutState(id, []byte(str))								//store item with id as key
 	if err != nil {
 		return nil, err
 	}
 		
 	//get the marble index
-	marblesAsBytes, err := stub.GetState(marbleIndexStr)
+	itemAsBytes, err := stub.GetState(itemIndexStr)
 	if err != nil {
 		return nil, errors.New("Failed to get marble index")
 	}
-	var marbleIndex []string
-	json.Unmarshal(marblesAsBytes, &marbleIndex)							//un stringify it aka JSON.parse()
+	var itemIndex []string
+	json.Unmarshal(itemAsBytes, &itemIndex)							//un stringify it aka JSON.parse()
 	
 	//append
-	marbleIndex = append(marbleIndex, args[0])								//add marble name to index list
-	fmt.Println("! marble index: ", marbleIndex)
-	jsonAsBytes, _ := json.Marshal(marbleIndex)
-	err = stub.PutState(marbleIndexStr, jsonAsBytes)						//store name of marble
+	itemIndex = append(itemIndex, name)								//add item name to index list
+	fmt.Println("! item index: ", itemIndex)
+	jsonAsBytes, _ := json.Marshal(itemIndex)
+	err = stub.PutState(itemIndexStr, jsonAsBytes)						//store name of item
 
 	fmt.Println("- end init marble")
 	return nil, nil
@@ -242,20 +242,20 @@ func (t *SimpleChaincode) set_user(stub *shim.ChaincodeStub, args []string) ([]b
 	var err error
 	
 	//   0       1
-	// "name", "bob"
+	// "id", "newOwner"
 	if len(args) < 2 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 2")
 	}
 	
 	fmt.Println("- start set user")
 	fmt.Println(args[0] + " - " + args[1])
-	marbleAsBytes, err := stub.GetState(args[0])
+	itemAsBytes, err := stub.GetState(args[0])
 	if err != nil {
 		return nil, errors.New("Failed to get thing")
 	}
 	res := Marble{}
-	json.Unmarshal(marbleAsBytes, &res)										//un stringify it aka JSON.parse()
-	res.User = args[1]														//change the user
+	json.Unmarshal(itemAsBytes, &res)										//un stringify it aka JSON.parse()
+	res.Owner = args[1]														//change the user
 	
 	jsonAsBytes, _ := json.Marshal(res)
 	err = stub.PutState(args[0], jsonAsBytes)								//rewrite the marble with id as key
