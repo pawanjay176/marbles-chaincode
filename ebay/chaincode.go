@@ -8,7 +8,7 @@ import (
 	"time"
 	"strings"
 
-	"github.com/openblockchain/obc-peer/openchain/chaincode/shim"
+	"github.com/hyperledger/fabric/core/chaincode/shim"
 
 )
 
