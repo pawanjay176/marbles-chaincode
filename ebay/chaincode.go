@@ -66,9 +66,18 @@ func (t *SimpleChaincode) init(stub *shim.ChaincodeStub, args []string) ([]byte,
 }
 
 // ============================================================================================================================
-// Run - Our entry point
+// Run - Our entry point for Invocations - [LEGACY] obc-peer 4/25/2016
 // ============================================================================================================================
 func (t *SimpleChaincode) Run(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
+	fmt.Println("run is running " + function)
+	return t.Invoke(stub, function, args)
+}
+
+
+// ============================================================================================================================
+// Run - Our entry point
+// ============================================================================================================================
+func (t *SimpleChaincode) Invoke	(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
 	fmt.Println("run is running " + function)
 
 	// Handle different functions
@@ -138,28 +147,28 @@ func (t *SimpleChaincode) Delete(stub *shim.ChaincodeStub, args []string) ([]byt
 		return nil, errors.New("Failed to delete state")
 	}
 
-	//get the marble index
-	marblesAsBytes, err := stub.GetState(marbleIndexStr)
+	//get the item index
+	itemsAsBytes, err := stub.GetState(itemIndexStr)
 	if err != nil {
-		return nil, errors.New("Failed to get marble index")
+		return nil, errors.New("Failed to get item index")
 	}
-	var marbleIndex []string
-	json.Unmarshal(marblesAsBytes, &marbleIndex)								//un stringify it aka JSON.parse()
+	var itemIndex []string
+	json.Unmarshal(itemsAsBytes, &itemIndex)								//un stringify it aka JSON.parse()
 	
-	//remove marble from index
-	for i,val := range marbleIndex{
+	//remove item from index
+	for i,val := range itemIndex{
 		fmt.Println(strconv.Itoa(i) + " - looking at " + val + " for " + name)
-		if val == name{															//find the correct marble
-			fmt.Println("found marble")
-			marbleIndex = append(marbleIndex[:i], marbleIndex[i+1:]...)			//remove it
-			for x:= range marbleIndex{											//debug prints...
-				fmt.Println(string(x) + " - " + marbleIndex[x])
+		if val == name{															//find the correct item
+			fmt.Println("found item")
+			itemIndex = append(itemIndex[:i], itemIndex[i+1:]...)			//remove it
+			for x:= range itemIndex{											//debug prints...
+				fmt.Println(string(x) + " - " + itemIndex[x])
 			}
 			break
 		}
 	}
-	jsonAsBytes, _ := json.Marshal(marbleIndex)									//save new index
-	err = stub.PutState(marbleIndexStr, jsonAsBytes)
+	jsonAsBytes, _ := json.Marshal(itemIndex)									//save new index
+	err = stub.PutState(itemIndexStr, jsonAsBytes)
 	return nil, nil
 }
 
@@ -253,7 +262,7 @@ func (t *SimpleChaincode) set_user(stub *shim.ChaincodeStub, args []string) ([]b
 	if err != nil {
 		return nil, errors.New("Failed to get thing")
 	}
-	res := Marble{}
+	res := Item{}
 	json.Unmarshal(itemAsBytes, &res)										//un stringify it aka JSON.parse()
 	res.Owner = args[1]														//change the user
 	
