@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 	"encoding/json"
-	"time"
 	"strings"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
@@ -34,7 +33,7 @@ func main() {
 	}
 }
 
-func (t *SimpleChaincode) init(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
 	var Aval int
 	var err error
 
