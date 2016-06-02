@@ -56,7 +56,7 @@ func (t *SimpleChaincode) init(stub *shim.ChaincodeStub, args []string) ([]byte,
 
 	var empty []string
 	jsonAsBytes, _ := json.Marshal(empty)								//marshal an emtpy array of strings to clear the index
-	err = stub.PutState(marbleIndexStr, jsonAsBytes)
+	err = stub.PutState(itemIndexStr, jsonAsBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -77,12 +77,12 @@ func (t *SimpleChaincode) Run(stub *shim.ChaincodeStub, function string, args []
 // ============================================================================================================================
 // Run - Our entry point
 // ============================================================================================================================
-func (t *SimpleChaincode) Invoke	(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
+func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
 	fmt.Println("run is running " + function)
 
 	// Handle different functions
 	if function == "init" {													//initialize the chaincode state, used as reset
-		return t.init(stub, args)
+		return t.Init(stub, "init", args)
 	} else if function == "delete" {										//deletes an entity from its state
 		return t.Delete(stub, args)
 	} else if function == "write" {											//writes a value to the chaincode state
