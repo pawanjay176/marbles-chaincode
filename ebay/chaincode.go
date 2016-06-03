@@ -105,10 +105,19 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 	// Handle different functions
 	if function == "read" {													//read a variable
 		return t.read(stub, args)
+	} else if function=="return_stuff" {
+		return t.return_stuff(stub, args)
 	}
 	fmt.Println("query did not find func: " + function)						//error
 
 	return nil, errors.New("Received unknown function query")
+}
+
+func (t *SimpleChaincode) return_stuff(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	// var err error
+	var a string
+	a = "HelloWorld"
+	return []byte(a),nil
 }
 
 // ============================================================================================================================
@@ -274,3 +283,4 @@ func (t *SimpleChaincode) set_user(stub *shim.ChaincodeStub, args []string) ([]b
 	fmt.Println("- end set user")
 	return nil, nil
 }
+
