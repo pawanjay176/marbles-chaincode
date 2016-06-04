@@ -201,7 +201,7 @@ func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]
 	var err error
 
 	//   0       1       2     
-	// name,    id     owner
+	// name,    owner     id
 	if len(args) != 3 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 4")
 	}
@@ -218,10 +218,10 @@ func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]
 	}
 
 	name := strings.ToLower(args[0])
-	id := args[1]
-	owner := strings.ToLower(args[2])
+	id := args[2]
+	owner := strings.ToLower(args[1])
 
-	str := `{"name": "` + name + `, ",id": "` + id + `, ",owner": "` + owner + `"}`
+	str := `{"name": "` + name + `, ",owner": "` + owner + `, ",id": "` + id + `"}`
 	err = stub.PutState(id, []byte(str))								//store item with id as key
 	if err != nil {
 		return nil, err
@@ -236,7 +236,7 @@ func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]
 	json.Unmarshal(itemAsBytes, &itemIndex)							//un stringify it aka JSON.parse()
 	
 	//append
-	itemIndex = append(itemIndex, name)								//add item name to index list
+	itemIndex = append(itemIndex, id)								//add item name to index list
 	fmt.Println("! item index: ", itemIndex)
 	jsonAsBytes, _ := json.Marshal(itemIndex)
 	err = stub.PutState(itemIndexStr, jsonAsBytes)						//store name of item
@@ -252,20 +252,20 @@ func (t *SimpleChaincode) set_user(stub *shim.ChaincodeStub, args []string) ([]b
 	var err error
 	
 	//   0       1
-	// "id", "newOwner"
+	// "newOwner", "id"
 	if len(args) < 2 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 2")
 	}
 	
 	fmt.Println("- start set user")
 	fmt.Println(args[0] + " - " + args[1])
-	itemAsBytes, err := stub.GetState(args[0])
+	itemAsBytes, err := stub.GetState(args[1])
 	if err != nil {
 		return nil, errors.New("Failed to get thing")
 	}
 	res := Item{}
 	json.Unmarshal(itemAsBytes, &res)										//un stringify it aka JSON.parse()
-	res.Owner = args[1]														//change the user
+	res.Owner = args[0]														//change the user
 	
 	jsonAsBytes, _ := json.Marshal(res)
 	err = stub.PutState(args[0], jsonAsBytes)								//rewrite the marble with id as key
