@@ -105,20 +105,13 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 	// Handle different functions
 	if function == "read" {													//read a variable
 		return t.read(stub, args)
-	} else if function=="return_stuff" {
-		return t.return_stuff(stub, args)
-	}
+	} 
 	fmt.Println("query did not find func: " + function)						//error
 
 	return nil, errors.New("Received unknown function query")
 }
 
-func (t *SimpleChaincode) return_stuff(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
-	// var err error
-	var a string
-	a = "HelloWorld"
-	return []byte(a),nil
-}
+
 
 // ============================================================================================================================
 // Read - read a variable from chaincode state
@@ -228,7 +221,7 @@ func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]
 	id := args[1]
 	owner := strings.ToLower(args[2])
 
-	str := `{"name": "` + name + `, "id": "` + id + `, "owner": "` + owner + `"}`
+	str := `{"name": "` + name + `, ",id": "` + id + `, ",owner": "` + owner + `"}`
 	err = stub.PutState(id, []byte(str))								//store item with id as key
 	if err != nil {
 		return nil, err
