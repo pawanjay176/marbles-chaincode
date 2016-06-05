@@ -221,6 +221,20 @@ func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]
 	id := args[2]
 	owner := strings.ToLower(args[1])
 
+	// check if item already exists
+
+	itemAsByte,err := stub.GetState(id)
+	if err!=nil {
+		return nil, errors.New("Failed to get item id")
+	}
+	res:=Item{}
+	json.Unmarshal(itemAsByte, &res)
+	if res.Id == id{
+		fmt.Println("This marble arleady exists: " + name)
+		fmt.Println(res);
+		return nil, errors.New("This marble arleady exists")				//all stop a marble by this name exists
+	}
+
 	str := `{"name": "` + name + `, ",owner": "` + owner + `, ",id": "` + id + `"}`
 	err = stub.PutState(id, []byte(str))								//store item with id as key
 	if err != nil {
