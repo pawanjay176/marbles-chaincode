@@ -242,7 +242,7 @@ func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]
 		return nil, errors.New("This marble arleady exists")				//all stop a marble by this name exists
 	}
 	
-	str := `{"id": "` + id + `", "name": "` + name + `", "owner": ` + owner + `, "price": "` + price + `, "purchase_date": "` + strconv.FormatInt(purchase_date, 10) + `, "warranty_validity": "` + warranty + `, "review": "`  +`"}`
+	str := `{"id": "` + id + `", "name": "` + name + `", "owner": "` + owner + `", "price": "` + price + `", "purchase_date": "` + strconv.FormatInt(purchase_date, 10) + `", "warranty_validity": "` + warranty + `", "review": "`  +`"}`
 	// str := `{"name": "` + name + `", "color": "` + color + `", "size": ` + strconv.Itoa(size) + `, "user": "` + user + `"}`
 	err = stub.PutState(id, []byte(str))								//store item with id as key
 	if err != nil {
