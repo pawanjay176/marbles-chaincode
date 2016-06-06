@@ -288,7 +288,7 @@ func (t *SimpleChaincode) set_user(stub *shim.ChaincodeStub, args []string) ([]b
 	res := Item{}
 	json.Unmarshal(itemAsBytes, &res)										//un stringify it aka JSON.parse()
 	res.Owner = args[1]
-	newPrice, err := strconv.Atoi(args[2])
+	newPrice := args[2]
 	res.Price = newPrice														//change the user
 	
 	jsonAsBytes, _ := json.Marshal(res)
