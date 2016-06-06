@@ -266,10 +266,10 @@ func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]
 	err = stub.PutState(id, newItemAsBytes)
 
 
-	err = stub.PutState(id, []byte(str))								//store item with id as key
-	if err != nil {
-		return nil, err
-	}
+	// err = stub.PutState(id, []byte(str))								//store item with id as key
+	// if err != nil {
+	// 	return nil, err
+	// }
 		
 	//get the marble index
 	itemAsBytes, err := stub.GetState(itemIndexStr)
