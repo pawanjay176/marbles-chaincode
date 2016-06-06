@@ -308,18 +308,20 @@ func (t *SimpleChaincode) set_user(stub *shim.ChaincodeStub, args []string) ([]b
 		return nil, errors.New("Failed to get thing")
 	}
 
-	var itemHistory []Item
+	var itemHistory []string
 	json.Unmarshal(itemAsBytes, &itemHistory)
 
+	str := itemHistory[0]
 	res := Item{}
-	res = itemHistory[0]
-	newItem := Item{}
-	newItem = res
+	json.Unmarshal([]byte(str), &res)
+	newItem := res
+	// newItem = res
 	newItem.Owner = args[1]
 	newItem.Price = args[2]
 
 	//append
-	itemHistory = append(itemHistory, newItem)
+	newItemString, err := json.Marshal(newItem)
+	itemHistory = append(itemHistory, string(newItemString))
 	jsonAsBytes, _ := json.Marshal(itemHistory)
 	err = stub.PutState(args[0], jsonAsBytes)
 
