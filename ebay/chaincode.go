@@ -21,9 +21,9 @@ type Item struct{
 	Id string `json:"id"`
 	Name string `json:"name"`
 	Owner string `json:"owner"`
-	Price int `json:"price"`
-	Purchase_date int64 `json:"purchase_date"`
-	Warranty_validity int64 `json:"warranty_validity"`
+	Price string `json:"price"`
+	Purchase_date string `json:"purchase_date"`
+	Warranty_validity string `json:"warranty_validity"`
 	Review string `json:"review"`
 }
 
@@ -225,9 +225,9 @@ func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]
 	id := strings.ToLower(args[0]) //string
 	name := strings.ToLower(args[1]) //string
 	owner := strings.ToLower(args[2]) // string
-	price := args[3] // int
+	price := strings.ToLower(args[3])
 	purchase_date := time.Now().UnixNano() / (int64(time.Millisecond)/int64(time.Nanosecond)) //unix epoch int64
-	warranty := args[4]
+	warranty := strings.ToLower(args[4])
 
 		//check if marble already exists
 	marbleAsBytes, err := stub.GetState(id)
@@ -242,7 +242,7 @@ func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]
 		return nil, errors.New("This marble arleady exists")				//all stop a marble by this name exists
 	}
 	
-	str := `{"id": "` + id + `", "name": "` + name + `", "owner": ` + owner + `, "price": "` + price + `, "purchase_date": "` + strconv.FormatInt(purchase_date, 10) + `, "warranty_validity": "` + warranty + `, "review": "`  +`"}`
+	str := `{"id": "` + id + `", "name": "` + name + `", "owner": "` + owner + `", "price": "` + price + `", "purchase_date": "` + strconv.FormatInt(purchase_date, 10) + `", "warranty_validity": "` + warranty + `", "review": "`  +`"}`
 	// str := `{"name": "` + name + `", "color": "` + color + `", "size": ` + strconv.Itoa(size) + `, "user": "` + user + `"}`
 	err = stub.PutState(id, []byte(str))								//store item with id as key
 	if err != nil {
