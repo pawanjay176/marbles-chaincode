@@ -94,8 +94,6 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 		return t.init_item(stub, args)
 	} else if function == "set_user" {										//change owner of a marble
 		return t.set_user(stub, args)
-	} else if function=="repair_item" {
-		return t.repair_item(stub,args)
 	}
 
 	fmt.Println("run did not find func: " + function)						//error
@@ -209,7 +207,7 @@ func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]
 
 	//   0       1       2       3          4
 	// id,    name     owner    price    warrantee
-	if len(args) != 3 {
+	if len(args) <= 3 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 4")
 	}
 
@@ -303,30 +301,30 @@ func (t *SimpleChaincode) set_user(stub *shim.ChaincodeStub, args []string) ([]b
 	return nil, nil
 }
 
-func (t *SimpleChaincode) repair_item(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
-	var err error
-	//   0   1   
-	//  id   review
+// func (t *SimpleChaincode) repair_item(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+// 	var err error
+// 	//   0   1   
+// 	//  id   review
 
-	itemAsBytes, err := stub.GetState(args[0])
-	if err != nil {
-		return nil, errors.New("Failed to get thing")
-	}
-	res := Item{}
-	json.Unmarshal(itemAsBytes, &res)										//un stringify it aka JSON.parse()													
-	var newReview string
-	newReview = res.Review+"^"+args[2]
-	res.Review = newReview
-	// str := `{"id": "` + res[0] + `", "name": "` + res[1] + `", "owner": ` + res[2] + `, "price": "` + strconv.Itoa(res[3]) + `, "purchase_date": "` + strconv.FormatInt(res[4], 10) + `, "warrantee": "` + strconv.FormatInt(res[5], 10) + `"}`
-	jsonAsBytes, _ := json.Marshal(res)
-	err = stub.PutState(args[0], jsonAsBytes)								//rewrite the marble with id as key
-	if err != nil {
-		return nil, err
-	}
+// 	itemAsBytes, err := stub.GetState(args[0])
+// 	if err != nil {
+// 		return nil, errors.New("Failed to get thing")
+// 	}
+// 	res := Item{}
+// 	json.Unmarshal(itemAsBytes, &res)										//un stringify it aka JSON.parse()													
+// 	var newReview string
+// 	newReview = res.Review+"^"+args[2]
+// 	res.Review = newReview
+// 	// str := `{"id": "` + res[0] + `", "name": "` + res[1] + `", "owner": ` + res[2] + `, "price": "` + strconv.Itoa(res[3]) + `, "purchase_date": "` + strconv.FormatInt(res[4], 10) + `, "warrantee": "` + strconv.FormatInt(res[5], 10) + `"}`
+// 	jsonAsBytes, _ := json.Marshal(res)
+// 	err = stub.PutState(args[0], jsonAsBytes)								//rewrite the marble with id as key
+// 	if err != nil {
+// 		return nil, err
+// 	}
 	
-	fmt.Println("- end set user")
-	return nil, nil
+// 	fmt.Println("- end set user")
+// 	return nil, nil
 
 
 
-}
+// }
