@@ -92,9 +92,9 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 		return t.Write(stub, args)
 	} else if function == "init_item" {									//create a new marble
 		return t.init_item(stub, args)
-	} // else if function == "set_user" {										//change owner of a marble
-		// return t.set_user(stub, args)
-	// }
+	}  else if function == "set_user" {										//change owner of a marble
+		return t.set_user(stub, args)
+	}
 
 	fmt.Println("run did not find func: " + function)						//error
 
@@ -289,49 +289,56 @@ func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]
 	return nil, nil
 }
 
-// ============================================================================================================================
-// Set User Permission on Marble
-// ============================================================================================================================
-// func (t *SimpleChaincode) set_user(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
-// 	var err error
+//============================================================================================================================
+//Set User Permission on Marble
+//============================================================================================================================
+func (t *SimpleChaincode) set_user(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	var err error
 	
-// 	//   0       1           2 
-// 	// id       newOwner   newPrice
-// 	if len(args) < 3 {
-// 		return nil, errors.New("Incorrect number of arguments. Expecting 2")
-// 	}
+	//   0       1           2 
+	// id       newOwner   newPrice
+	if len(args) < 3 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 2")
+	}
 	
-// 	fmt.Println("- start set user")
-// 	fmt.Println(args[0] + " - " + args[1])
-// 	itemAsBytes, err := stub.GetState(args[0])
-// 	if err != nil {
-// 		return nil, errors.New("Failed to get thing")
-// 	}
+	fmt.Println("- start set user")
+	fmt.Println(args[0] + " - " + args[1])
+	itemAsBytes, err := stub.GetState(args[0])
+	if err != nil {
+		return nil, errors.New("Failed to get thing")
+	}
 
-// 	var itemHistory []Item
-// 	json.Unmarshal(itemAsBytes, &itemHistory)
+	var itemHistory []Item
+	json.Unmarshal(itemAsBytes, &itemHistory)
 
-// 	res := Item{}
-// 	res.Owner = args[1]
-// 	newPrice := args[2]
-// 	res.Price = newPrice
+	res := Item{}
+	res = itemHistory[0]
+	newItem := Item{}
+	newItem = res
+	newItem.Owner = args[1]
+	newItem.Price = args[2]
 
-// 	res := Item{}
-// 	json.Unmarshal(itemAsBytes, &res)										//un stringify it aka JSON.parse()
+	//append
+	itemHistory = append(itemHistory, newItem)
+	jsonAsBytes, _ := json.Marshal(itemHistory)
+	err = stub.PutState(args[0], jsonAsBytes)
+
+	// res := Item{}
+	// json.Unmarshal(itemAsBytes, &res)										//un stringify it aka JSON.parse()
 	
-// 	res.Owner = args[1]
-// 	newPrice := args[2]
-// 	res.Price = newPrice														//change the user
+	// res.Owner = args[1]
+	// newPrice := args[2]
+	// res.Price = newPrice														//change the user
 	
-// 	jsonAsBytes, _ := json.Marshal(res)
-// 	err = stub.PutState(args[0], jsonAsBytes)								//rewrite the marble with id as key
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	// jsonAsBytes, _ := json.Marshal(res)
+	// err = stub.PutState(args[0], jsonAsBytes)								//rewrite the marble with id as key
+	// if err != nil {
+	// 	return nil, err
+	// }
 	
-// 	fmt.Println("- end set user")
-// 	return nil, nil
-// }
+	fmt.Println("- end set user")
+	return nil, nil
+}
 
 // func (t *SimpleChaincode) repair_item(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 // 	var err error
