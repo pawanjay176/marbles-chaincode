@@ -15,16 +15,20 @@ type SimpleChaincode struct {
 }
 
 var itemIndexStr = "_itemindex"
-var openTradesStr = "_opentrades"
 
 type Item struct{
 	Id string `json:"id"`
 	Name string `json:"name"`
 	Owner string `json:"owner"`
 	Price string `json:"price"`
-	Purchase_date string `json:"purchase_date"`
+	Company string `json:"company"`
+	Type string `json:"type"`
+	Seller string `json:"seller"`
+	Bill_num string `json:"bill_num"`
+	Date string `json:"date"`
 	Warranty_validity string `json:"warranty_validity"`
-	Review string `json:"review"`
+	Problem string `json:"problem"`
+	Fixes string `json:"fixes"`
 }
 
 
@@ -92,10 +96,12 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 		return t.Write(stub, args)
 	} else if function == "init_item" {									//create a new marble
 		return t.init_item(stub, args)
-	}  else if function == "set_user" {										//change owner of a marble
-		return t.set_user(stub, args)
+	}  else if function == "first_sale" {										//change owner of a marble
+		return t.first_sale(stub, args)
 	} else if function == "repair_item" {									//cancel an open trade order
 		return t.repair_item(stub, args)
+	} else if function == "resale_item" {									//cancel an open trade order
+		return t.resale_item(stub, args)
 	}
 
 	fmt.Println("run did not find func: " + function)						//error
@@ -203,12 +209,13 @@ func (t *SimpleChaincode) Write(stub *shim.ChaincodeStub, args []string) ([]byte
 
 // ============================================================================================================================
 // Init item and store into chaincode state
+// Used by manufacturers
 // ============================================================================================================================
 func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	var err error
 
-	//   0       1       2       3          4
-	// id,    name     owner    price    warrantee
+	//   0       1       2          3          4
+	// id,    name     company    price    warranty
 	if len(args) <= 3 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 4")
 	}
@@ -226,11 +233,11 @@ func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]
 
 	id := strings.ToLower(args[0]) //string
 	name := strings.ToLower(args[1]) //string
-	owner := strings.ToLower(args[2]) // string
+	company := strings.ToLower(args[2]) // string
 	price := strings.ToLower(args[3])
-	purchase_date := time.Now().UnixNano() / (int64(time.Millisecond)/int64(time.Nanosecond)) //unix epoch int64
+	date := time.Now().UnixNano() / (int64(time.Millisecond)/int64(time.Nanosecond)) //unix epoch int64
 	warranty := strings.ToLower(args[4])
-
+	trans_type := "manufacture"
 		//check if marble already exists
 	marbleAsBytes, err := stub.GetState(id)
 	if err != nil {
@@ -244,7 +251,7 @@ func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]
 		return nil, errors.New("This marble arleady exists")				//all stop a marble by this name exists
 	}
 	
-	str := `{"id": "` + id + `", "name": "` + name + `", "owner": "` + owner + `", "price": "` + price + `", "purchase_date": "` + strconv.FormatInt(purchase_date, 10) + `", "warranty_validity": "` + warranty + `", "review": "`  +`"}`
+	str := `{"id": "` + id + `", "name": "` + name + `", "owner": "` + `", "price": "` + price + `", "date": "` + strconv.FormatInt(date, 10) + `", "warranty_validity": "` + warranty + `", "company": "` + company + `", "seller": "` + `", "bill_num": "` + `", "type": "`+ trans_type + `", "problem": "` + `", "fixes": "`  +`"}`
 	// str := `{"name": "` + name + `", "color": "` + color + `", "size": ` + strconv.Itoa(size) + `, "user": "` + user + `"}`
 	
 	var itemList []string      //new list which stores all the transitions for a particular item
@@ -290,11 +297,67 @@ func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]
 	fmt.Println("- end init marble")
 	return nil, nil
 }
+//============================================================================================================================
+//First sale
+//============================================================================================================================
+func (t *SimpleChaincode) first_sale(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	var err error
+	
+	//   0       1         2           3      
+	// id       owner    bill_num    seller
+	if len(args) < 3 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 2")
+	}
+	
+	fmt.Println("- start set user")
+	fmt.Println(args[0] + " - " + args[1])
+	itemAsBytes, err := stub.GetState(args[0])
+	if err != nil {
+		return nil, errors.New("Failed to get thing")
+	}
 
+	var itemHistory []string
+	json.Unmarshal(itemAsBytes, &itemHistory)
+
+	str := itemHistory[0]
+	res := Item{}
+	json.Unmarshal([]byte(str), &res)
+	newItem := res
+	
+	newItem.Owner = args[1]
+	newItem.Bill_num = args[2]
+	purchase_date := time.Now().UnixNano() / (int64(time.Millisecond)/int64(time.Nanosecond))
+	newItem.Date = strconv.FormatInt(purchase_date, 10)
+	newItem.Seller = args[3]
+	trans_type := "first_sale"
+	newItem.Type = trans_type
+
+	//append
+	newItemString, err := json.Marshal(newItem)
+	itemHistory = append(itemHistory, string(newItemString))
+	jsonAsBytes, _ := json.Marshal(itemHistory)
+	err = stub.PutState(args[0], jsonAsBytes)
+
+	// res := Item{}
+	// json.Unmarshal(itemAsBytes, &res)										//un stringify it aka JSON.parse()
+	
+	// res.Owner = args[1]
+	// newPrice := args[2]
+	// res.Price = newPrice														//change the user
+	
+	// jsonAsBytes, _ := json.Marshal(res)
+	// err = stub.PutState(args[0], jsonAsBytes)								//rewrite the marble with id as key
+	// if err != nil {
+	// 	return nil, err
+	// }
+	
+	fmt.Println("- end set user")
+	return nil, nil
+}
 //============================================================================================================================
 //Set User Permission on Marble
 //============================================================================================================================
-func (t *SimpleChaincode) set_user(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func (t *SimpleChaincode) resale_item(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	var err error
 	
 	//   0       1           2 
@@ -317,9 +380,12 @@ func (t *SimpleChaincode) set_user(stub *shim.ChaincodeStub, args []string) ([]b
 	res := Item{}
 	json.Unmarshal([]byte(str), &res)
 	newItem := res
-	// newItem = res
 	newItem.Owner = args[1]
 	newItem.Price = args[2]
+	purchase_date := time.Now().UnixNano() / (int64(time.Millisecond)/int64(time.Nanosecond))
+	newItem.Date = strconv.FormatInt(purchase_date, 10)
+	trans_type := "resale_item"
+	newItem.Type = trans_type
 
 	//append
 	newItemString, err := json.Marshal(newItem)
@@ -346,28 +412,41 @@ func (t *SimpleChaincode) set_user(stub *shim.ChaincodeStub, args []string) ([]b
 
 func (t *SimpleChaincode) repair_item(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	var err error
-	//   0   1   
-	//  id   review
+	//   0     1        2
+	//  id   problem  fixes
 
+	if len(args) < 3 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 2")
+	}
+	
+	fmt.Println("- start set user")
+	fmt.Println(args[0] + " - " + args[1])
 	itemAsBytes, err := stub.GetState(args[0])
 	if err != nil {
 		return nil, errors.New("Failed to get thing")
 	}
-	res := Item{}
-	json.Unmarshal(itemAsBytes, &res)										//un stringify it aka JSON.parse()													
-	var newReview string
-	newReview = res.Review+"^"+args[2]
-	res.Review = newReview
-	// str := `{"id": "` + res[0] + `", "name": "` + res[1] + `", "owner": ` + res[2] + `, "price": "` + strconv.Itoa(res[3]) + `, "purchase_date": "` + strconv.FormatInt(res[4], 10) + `, "warrantee": "` + strconv.FormatInt(res[5], 10) + `"}`
-	jsonAsBytes, _ := json.Marshal(res)
-	err = stub.PutState(args[0], jsonAsBytes)								//rewrite the marble with id as key
-	if err != nil {
-		return nil, err
-	}
-	
-	fmt.Println("- end set user")
-	return nil, nil
 
+	var itemHistory []string
+	json.Unmarshal(itemAsBytes, &itemHistory)
+
+	str := itemHistory[0]
+	res := Item{}
+	json.Unmarshal([]byte(str), &res)
+	newItem := res
+	newItem.Problem = args[1]
+	newItem.Fixes = args[2]
+	repair_date := time.Now().UnixNano() / (int64(time.Millisecond)/int64(time.Nanosecond))
+	newItem.Date = strconv.FormatInt(repair_date, 10)
+	trans_type := "repair_item"
+	newItem.Type = trans_type
+
+	//append
+	newItemString, err := json.Marshal(newItem)
+	itemHistory = append(itemHistory, string(newItemString))
+	jsonAsBytes, _ := json.Marshal(itemHistory)
+	err = stub.PutState(args[0], jsonAsBytes)
+
+	return nil,nil
 
 
 }
