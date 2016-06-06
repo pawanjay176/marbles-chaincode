@@ -218,7 +218,7 @@ func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]
 	}
 
 	name := strings.ToLower(args[0])
-	id := args[2]
+	id := strings.ToLower(args[2])
 	owner := strings.ToLower(args[1])
 
 		//check if marble already exists
