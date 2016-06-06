@@ -92,9 +92,9 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 		return t.Write(stub, args)
 	} else if function == "init_item" {									//create a new marble
 		return t.init_item(stub, args)
-	} else if function == "set_user" {										//change owner of a marble
-		return t.set_user(stub, args)
-	}
+	} // else if function == "set_user" {										//change owner of a marble
+		// return t.set_user(stub, args)
+	// }
 
 	fmt.Println("run did not find func: " + function)						//error
 
@@ -244,6 +244,28 @@ func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]
 	
 	str := `{"id": "` + id + `", "name": "` + name + `", "owner": "` + owner + `", "price": "` + price + `", "purchase_date": "` + strconv.FormatInt(purchase_date, 10) + `", "warranty_validity": "` + warranty + `", "review": "`  +`"}`
 	// str := `{"name": "` + name + `", "color": "` + color + `", "size": ` + strconv.Itoa(size) + `, "user": "` + user + `"}`
+	
+	var itemList []string      //new list which stores all the transitions for a particular item
+	itemListAsBytes,_ := json.Marshal(itemList)
+	err = stub.PutState(id, itemListAsBytes)
+
+	getItems, err := stub.GetState(id)
+	if err!=nil {
+		return nil, errors.New("Failed to get marble")
+	}	
+
+	var itemNew []string
+	json.Unmarshal(getItems, &itemNew)
+
+	// append newly created item as first element in its list
+
+
+	// maybe byte[]
+	itemNew = append(itemNew, str)
+	newItemAsBytes, _ := json.Marshal(itemNew)
+	err = stub.PutState(id, newItemAsBytes)
+
+
 	err = stub.PutState(id, []byte(str))								//store item with id as key
 	if err != nil {
 		return nil, err
@@ -270,36 +292,46 @@ func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]
 // ============================================================================================================================
 // Set User Permission on Marble
 // ============================================================================================================================
-func (t *SimpleChaincode) set_user(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
-	var err error
+// func (t *SimpleChaincode) set_user(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+// 	var err error
 	
-	//   0       1           2 
-	// id       newOwner   newPrice
-	if len(args) < 3 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 2")
-	}
+// 	//   0       1           2 
+// 	// id       newOwner   newPrice
+// 	if len(args) < 3 {
+// 		return nil, errors.New("Incorrect number of arguments. Expecting 2")
+// 	}
 	
-	fmt.Println("- start set user")
-	fmt.Println(args[0] + " - " + args[1])
-	itemAsBytes, err := stub.GetState(args[0])
-	if err != nil {
-		return nil, errors.New("Failed to get thing")
-	}
-	res := Item{}
-	json.Unmarshal(itemAsBytes, &res)										//un stringify it aka JSON.parse()
-	res.Owner = args[1]
-	newPrice := args[2]
-	res.Price = newPrice														//change the user
+// 	fmt.Println("- start set user")
+// 	fmt.Println(args[0] + " - " + args[1])
+// 	itemAsBytes, err := stub.GetState(args[0])
+// 	if err != nil {
+// 		return nil, errors.New("Failed to get thing")
+// 	}
+
+// 	var itemHistory []Item
+// 	json.Unmarshal(itemAsBytes, &itemHistory)
+
+// 	res := Item{}
+// 	res.Owner = args[1]
+// 	newPrice := args[2]
+// 	res.Price = newPrice
+
+// 	res := Item{}
+// 	json.Unmarshal(itemAsBytes, &res)										//un stringify it aka JSON.parse()
 	
-	jsonAsBytes, _ := json.Marshal(res)
-	err = stub.PutState(args[0], jsonAsBytes)								//rewrite the marble with id as key
-	if err != nil {
-		return nil, err
-	}
+// 	res.Owner = args[1]
+// 	newPrice := args[2]
+// 	res.Price = newPrice														//change the user
 	
-	fmt.Println("- end set user")
-	return nil, nil
-}
+// 	jsonAsBytes, _ := json.Marshal(res)
+// 	err = stub.PutState(args[0], jsonAsBytes)								//rewrite the marble with id as key
+// 	if err != nil {
+// 		return nil, err
+// 	}
+	
+// 	fmt.Println("- end set user")
+// 	return nil, nil
+// }
 
 // func (t *SimpleChaincode) repair_item(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 // 	var err error
