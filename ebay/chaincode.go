@@ -24,6 +24,7 @@ type Item struct{
 	Company string `json:"company"`
 	Type string `json:"type"`
 	Seller string `json:"seller"`
+	Category string `json:"category"`
 	Bill_num string `json:"bill_num"`
 	Date string `json:"date"`
 	Warranty_validity string `json:"warranty_validity"`
@@ -214,8 +215,8 @@ func (t *SimpleChaincode) Write(stub *shim.ChaincodeStub, args []string) ([]byte
 func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	var err error
 
-	//   0       1       2          3          4
-	// id,    name     company    price    warranty
+	//   0       1       2          3          4      5
+	// id,    name     company    price    warranty  category
 	if len(args) <= 3 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 4")
 	}
@@ -238,6 +239,7 @@ func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]
 	date := time.Now().UnixNano() / (int64(time.Millisecond)/int64(time.Nanosecond)) //unix epoch int64
 	warranty := strings.ToLower(args[4])
 	trans_type := "manufacture"
+	category:=strings.ToLower(args[5])
 		//check if marble already exists
 	marbleAsBytes, err := stub.GetState(id)
 	if err != nil {
@@ -251,7 +253,7 @@ func (t *SimpleChaincode) init_item(stub *shim.ChaincodeStub, args []string) ([]
 		return nil, errors.New("This marble arleady exists")				//all stop a marble by this name exists
 	}
 	
-	str := `{"id": "` + id + `", "name": "` + name + `", "owner": "` + `", "price": "` + price + `", "date": "` + strconv.FormatInt(date, 10) + `", "warranty_validity": "` + warranty + `", "company": "` + company + `", "seller": "` + `", "bill_num": "` + `", "type": "`+ trans_type + `", "problem": "` + `", "fixes": "`  +`"}`
+	str := `{"id": "` + id + `", "name": "` + name + `", "owner": "` + `", "price": "` + price + `", "category": "` + category +`", "date": "` + strconv.FormatInt(date, 10) + `", "warranty_validity": "` + warranty + `", "company": "` + company + `", "seller": "` + `", "bill_num": "` + `", "type": "`+ trans_type + `", "problem": "` + `", "fixes": "`  +`"}`
 	// str := `{"name": "` + name + `", "color": "` + color + `", "size": ` + strconv.Itoa(size) + `, "user": "` + user + `"}`
 	
 	var itemList []string      //new list which stores all the transitions for a particular item

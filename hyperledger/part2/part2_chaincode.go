@@ -153,7 +153,6 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 	return nil, errors.New("Received unknown function invocation")
 }
 
-
 // ============================================================================================================================
 // Query - Our entry point for Queries
 // ============================================================================================================================
